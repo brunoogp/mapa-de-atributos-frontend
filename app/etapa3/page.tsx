@@ -12,6 +12,7 @@ import {
   Filler,
   Tooltip,
   Legend,
+  ChartOptions,
 } from "chart.js";
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -239,28 +240,27 @@ export default function ReportPage() {
     ],
   };
 
-  const archetypeOptions = {
-    indexAxis: "y",
-    scales: {
-      x: {
-        type: "linear",
-        min: 0,
-        max: 100,
-        ticks: { color: "#334155" },
-        grid: { color: "#e2e8f0" },
-      },
-      y: {
-        ticks: { color: "#334155" },
-        grid: { color: "#f1f5f9" },
-      },
+ const archetypeOptions: ChartOptions<"bar"> = {
+  indexAxis: "y",
+  scales: {
+    x: {
+      type: "linear",
+      min: 0,
+      max: 100,
+      ticks: { color: "#334155" },
+      grid: { color: "#e2e8f0" },
     },
-    plugins: {
-      legend: { display: false },
+    y: {
+      ticks: { color: "#334155" },
+      grid: { color: "#f1f5f9" },
     },
-    responsive: true,
-    maintainAspectRatio: false,
-  };
-
+  },
+  plugins: {
+    legend: { display: false },
+  },
+  responsive: true,
+  maintainAspectRatio: false,
+};
   const radarData = {
     labels: attributes?.map((a: any) => a.atributo) ?? [],
     datasets: [
