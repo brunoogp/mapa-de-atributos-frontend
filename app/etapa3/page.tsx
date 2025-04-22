@@ -243,7 +243,7 @@ export default function ReportPage() {
 import type { ChartOptions } from "chart.js";
 
 const archetypeOptions: ChartOptions<"bar"> = {
-  indexAxis: "y",
+  indexAxis: "y" as const,
   scales: {
     x: {
       type: "linear" as const,
