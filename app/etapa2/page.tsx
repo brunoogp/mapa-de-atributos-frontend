@@ -106,7 +106,7 @@ export default function FormularioEtapa2() {
   return (
     <div className="min-h-screen bg-background text-foreground px-6 py-10">
       {isLoading && (
-        <LoadingOverlay frase={frases[fraseIndex]} />
+        <LoadingOverlay />
       )}
 
       <div className="max-w-2xl mx-auto space-y-10">
