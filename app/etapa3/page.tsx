@@ -242,6 +242,8 @@ export default function ReportPage() {
 
 import type { ChartOptions } from "chart.js";
 
+import type { ChartOptions } from "chart.js";
+
 const archetypeOptions: ChartOptions<"bar"> = {
   indexAxis: "y" as const,
   scales: {
@@ -263,6 +265,7 @@ const archetypeOptions: ChartOptions<"bar"> = {
   responsive: true,
   maintainAspectRatio: false,
 };
+
 
   const radarData = {
     labels: attributes?.map((a: any) => a.atributo) ?? [],
