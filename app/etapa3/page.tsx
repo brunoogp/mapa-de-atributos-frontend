@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import RelatorioPDFExport from "@/components/ui/RelatorioPDFExport";
 import AdditionalReport from "@/components/AdditionalReport";
+import type { ChartOptions } from "chart.js";
 
 // Registrar os componentes do Chart.js
 ChartJS.register(
@@ -239,8 +240,6 @@ export default function ReportPage() {
       },
     ],
   };
-
-import type { ChartOptions } from "chart.js";
 
 const archetypeOptions: ChartOptions<"bar"> = {
   indexAxis: "y",
