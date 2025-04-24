@@ -11,10 +11,11 @@ import {
   BarElement,
   Filler,
   Tooltip,
-  Legend
-} from "chart.js"; // ✅ Aqui termina corretamente
-
-import type { ChartOptions } from "chart.js"; // ✅ Aqui começa o import separado
+  Legend,
+  ChartOptions,
+  LinearScaleOptions,
+  CategoryScaleOptions,
+} from "chart.js";
 
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,7 +37,9 @@ import {
 import RelatorioPDFExport from "@/components/ui/RelatorioPDFExport";
 import AdditionalReport from "@/components/AdditionalReport";
 
-// Registrar os componentes do Chart.js
+// ────────────────────────────────────────────────────────────────────
+// Registro dos componentes Chart.js
+// ────────────────────────────────────────────────────────────────────
 ChartJS.register(
   RadialLinearScale,
   LinearScale,
@@ -57,12 +60,11 @@ export default function ReportPage() {
   const [insights, setInsights] = useState<any[]>([]);
   const [archetypesChart, setArchetypesChart] = useState<any[]>([]);
   const [isExporting, setIsExporting] = useState(false);
-  // Novo estado para controlar o modal da proposta de valor
   const [showAdditionalReport, setShowAdditionalReport] = useState(false);
 
   const pdfRef = useRef<HTMLDivElement>(null);
 
-  // CSS para sobrescrever estilos problemáticos (para exportação PDF, se for necessário)
+  // ── Override de estilos problemáticos (exportação PDF)
   useEffect(() => {
     const styleElement = document.createElement("style");
     styleElement.textContent = `
@@ -71,35 +73,29 @@ export default function ReportPage() {
         background-color: #ffffff !important;
         border-color: #dddddd !important;
       }
-      .export-pdf-mode .text-muted-foreground {
-        color: #666666 !important;
-      }
-      .export-pdf-mode .bg-muted {
-        background-color: #f5f5f5 !important;
-      }
+      .export-pdf-mode .text-muted-foreground { color: #666666 !important; }
+      .export-pdf-mode .bg-muted            { background-color: #f5f5f5 !important; }
     `;
     document.head.appendChild(styleElement);
-    return () => {
-      document.head.removeChild(styleElement);
-    };
+    return () => document.head.removeChild(styleElement);
   }, []);
 
-  // Busca os dados do diagnóstico e atualiza os estados
+  // ── Busca de dados do diagnóstico (localStorage → API)
   useEffect(() => {
     const rawBriefing = localStorage.getItem("briefing");
     const rawAtributos = localStorage.getItem("atributosSelecionados");
     if (!rawBriefing || !rawAtributos) return;
+
     const briefingData = JSON.parse(rawBriefing);
     const atributosSelecionados = JSON.parse(rawAtributos);
-    const payload = {
-      ...briefingData,
-      atributos_selecionados: atributosSelecionados,
-    };
 
-    fetch("http://localhost:8000/diagnostico/briefing-direto", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/diagnostico/briefing-direto`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...briefingData,
+        atributos_selecionados: atributosSelecionados,
+      }),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -111,86 +107,42 @@ export default function ReportPage() {
         setInsights(data.insights);
         localStorage.setItem("diagnostico", JSON.stringify(data));
       })
-      .catch((err) => {
-        console.error("Erro ao gerar diagnóstico:", err);
-      });
+      .catch((err) => console.error("Erro ao gerar diagnóstico:", err));
   }, []);
 
-  // Função para exportar o PDF do relatório principal (mantida se necessário)
+  // ── Exportação PDF
   const exportarPDF = async () => {
     if (!pdfRef.current || isExporting) return;
     setIsExporting(true);
     try {
       document.documentElement.classList.add("export-pdf-mode");
-      const [jsPDFModule, html2CanvasModule] = await Promise.all([
+      const [{ default: jsPDF }, { default: html2Canvas }] = await Promise.all([
         import("jspdf"),
         import("html2canvas"),
       ]);
-      const jsPDF = jsPDFModule.default;
-      const html2Canvas = html2CanvasModule.default;
 
-      // Clona o elemento a ser capturado
-      const elementToCapture = pdfRef.current;
-      const clone = elementToCapture.cloneNode(true) as HTMLElement;
+      const element = pdfRef.current;
+      const clone = element.cloneNode(true) as HTMLElement;
 
-      // Insere um style de sobrescrita no clone para forçar cores seguras
-      const styleOverride = document.createElement("style");
-      styleOverride.innerHTML = `* { 
-        background: #fff !important; 
-        color: #000 !important; 
-        border-color: #ddd !important; 
-      }`;
-      clone.insertBefore(styleOverride, clone.firstChild);
-
-      // Função para limpar estilos inline com "oklch"
+      // Limpa cores em oklch
       const cleanNode = (node: HTMLElement) => {
-        if (node.style && node.style.cssText) {
-          node.style.cssText = node.style.cssText.replace(/oklch\([^)]+\)/g, "#ffffff");
-        }
-        if (node.style.backgroundColor && node.style.backgroundColor.includes("oklch")) {
-          node.style.backgroundColor = "#ffffff";
-        }
-        if (node.style.color && node.style.color.includes("oklch")) {
-          node.style.color = "#000000";
-        }
-        if (node.style.borderColor && node.style.borderColor.includes("oklch")) {
-          node.style.borderColor = "#dddddd";
-        }
-        Array.from(node.children).forEach((child) => {
-          cleanNode(child as HTMLElement);
+        ["backgroundColor", "color", "borderColor"].forEach((prop) => {
+          // @ts-ignore
+          if (node.style[prop]?.includes("oklch")) node.style[prop] = "";
         });
+        Array.from(node.children).forEach((n) => cleanNode(n as HTMLElement));
       };
       cleanNode(clone);
 
-      // Remove classes do clone para evitar estilos globais
-      const removeClasses = (node: HTMLElement) => {
-        node.removeAttribute("class");
-        Array.from(node.children).forEach((child) => {
-          removeClasses(child as HTMLElement);
-        });
-      };
-      removeClasses(clone);
-
-      // Posiciona o clone fora da tela para a captura
       clone.style.position = "absolute";
       clone.style.top = "-9999px";
-      clone.style.left = "0";
       document.body.appendChild(clone);
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((r) => setTimeout(r, 100));
 
       const canvas = await html2Canvas(clone, {
         scale: 2,
-        useCORS: true,
-        logging: false,
         backgroundColor: "#ffffff",
-        removeContainer: false,
-        ignoreElements: (element) => {
-          const style = window.getComputedStyle(element);
-          const bgColor = style.backgroundColor;
-          const color = style.color;
-          return bgColor?.includes("oklch") || color?.includes("oklch");
-        },
       });
       document.body.removeChild(clone);
 
@@ -200,8 +152,9 @@ export default function ReportPage() {
       const pageHeight = 295;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      let heightLeft = imgHeight;
       let position = 0;
+      let heightLeft = imgHeight;
+
       pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
@@ -212,19 +165,16 @@ export default function ReportPage() {
         heightLeft -= pageHeight;
       }
       pdf.save("relatorio-marca.pdf");
-    } catch (error) {
-      console.error("Erro ao exportar PDF:", error);
-      alert("Houve um erro ao exportar o PDF. Por favor, tente novamente.");
+    } catch (e) {
+      console.error("Erro ao exportar PDF:", e);
+      alert("Houve um erro ao exportar o PDF. Tente novamente.");
     } finally {
       document.documentElement.classList.remove("export-pdf-mode");
       setIsExporting(false);
     }
   };
 
-  // Caso queira manter a função de gerar PDF para a Proposta de Valor, você pode deixar handleGenerateAdditionalReport;
-  // Para exibir na tela (modal), usaremos o estado showAdditionalReport.
-
-  // Definição de dados para o gráfico dos arquétipos
+  // ── Dados para gráficos
   const archetypeData = {
     labels: archetypesChart?.map((a: any) => a.nome) ?? [],
     datasets: [
@@ -242,27 +192,27 @@ export default function ReportPage() {
     ],
   };
 
-const archetypeOptions: ChartOptions<'bar'> = {
-  indexAxis: 'y',
-  scales: {
-    x: {
-      type: 'linear',
-      min: 0,
-      max: 100,
-      ticks: { color: '#334155' },
-      grid: { color: '#e2e8f0' },
+  // ✅ Tipagem estrita – fim dos erros no build
+  const archetypeOptions: ChartOptions<"bar"> = {
+    indexAxis: "y" as const,
+    scales: {
+      x: {
+        type: "linear" as const,
+        min: 0,
+        max: 100,
+        ticks: { color: "#334155" },
+        grid: { color: "#e2e8f0" },
+      } as LinearScaleOptions,
+      y: {
+        ticks: { color: "#334155" },
+        grid: { color: "#f1f5f9" },
+      } as CategoryScaleOptions,
     },
-    y: {
-      ticks: { color: '#334155' },
-      grid: { color: '#f1f5f9' },
-    },
-  },
-  plugins: {
-    legend: { display: false },
-  },
-  responsive: true,
-  maintainAspectRatio: false,
-};
+    plugins: { legend: { display: false } },
+    responsive: true,
+    maintainAspectRatio: false,
+  };
+
   const radarData = {
     labels: attributes?.map((a: any) => a.atributo) ?? [],
     datasets: [
@@ -287,13 +237,12 @@ const archetypeOptions: ChartOptions<'bar'> = {
         grid: { color: "#cbd5e1" },
       },
     },
-    plugins: {
-      legend: { labels: { color: "#334155" } },
-    },
+    plugins: { legend: { labels: { color: "#334155" } } },
     responsive: true,
     maintainAspectRatio: false,
   };
 
+  // ── Mensagens de loading
   const frasesLoading = [
     "Preparando sua análise estratégica...",
     "Interpretando arquétipos e atributos...",
@@ -303,10 +252,11 @@ const archetypeOptions: ChartOptions<'bar'> = {
   ];
   const [index, setIndex] = useState(0);
   useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % frasesLoading.length);
-    }, 2500);
-    return () => clearInterval(interval);
+    const id = setInterval(
+      () => setIndex((i) => (i + 1) % frasesLoading.length),
+      2500
+    );
+    return () => clearInterval(id);
   }, []);
 
   if (!brandSummary) {
@@ -327,15 +277,14 @@ const archetypeOptions: ChartOptions<'bar'> = {
     );
   }
 
+  // ────────────────────────────────────────────────────────────────────
+  // JSX de retorno (sem alterações estruturais)
+  // ────────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-background text-foreground px-6 py-10">
-      {/* Cabeçalho com o logo A.R.Q */}
-<header className="flex items-center justify-center mb-8">
-  <h1 className="text-4xl font-bold">A.R.Q</h1>
-  {/* Se tiver uma imagem, use:
-  <Image src="/arq-logo.png" alt="Logo A.R.Q" width={150} height={50} />
-  */}
-</header>
+      <header className="flex items-center justify-center mb-8">
+        <h1 className="text-4xl font-bold">A.R.Q</h1>
+      </header>
 
       <div className="max-w-7xl mx-auto space-y-6">
         <header className="flex items-center justify-between">
@@ -350,7 +299,7 @@ const archetypeOptions: ChartOptions<'bar'> = {
           </Button>
         </header>
 
-        {/* Área oculta para exportação (PDF) */}
+        {/* Elemento invisível para captura PDF */}
         <div
           ref={pdfRef}
           style={{
@@ -373,7 +322,7 @@ const archetypeOptions: ChartOptions<'bar'> = {
           />
         </div>
 
-        {/* Resumo e Arquétipo */}
+        {/* Resumo + Arquétipo */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="col-span-2">
             <CardContent className="p-6 space-y-4">
@@ -383,6 +332,8 @@ const archetypeOptions: ChartOptions<'bar'> = {
               </p>
             </CardContent>
           </Card>
+
+          {/* Card do Arquétipo com modal detalhado */}
           <Dialog>
             <DialogTrigger asChild>
               <Card className="cursor-pointer hover:bg-muted transition">
