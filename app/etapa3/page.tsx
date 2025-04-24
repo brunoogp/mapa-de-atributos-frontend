@@ -242,22 +242,22 @@ export default function ReportPage() {
   };
 
 const archetypeOptions: ChartOptions<"bar"> = {
-  indexAxis: "y" as const, // ← ESSENCIAL para evitar o erro de tipagem
+  indexAxis: 'y',
   scales: {
     x: {
-      type: "linear",
+      beginAtZero: true,
       min: 0,
       max: 100,
       ticks: { color: "#334155" },
-      grid: { color: "#e2e8f0" },
+      grid: { color: "#e2e8f0" }
     },
     y: {
       ticks: { color: "#334155" },
-      grid: { color: "#f1f5f9" },
+      grid: { color: "#f1f5f9" }
     },
   },
   plugins: {
-    legend: { display: false },
+    legend: { display: false }
   },
   responsive: true,
   maintainAspectRatio: false,
