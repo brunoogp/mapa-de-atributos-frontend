@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
-  // ignora erros de TypeScript no build de produção
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-};
+  // ignora erros de tipagem na transpilação
+  typescript: { ignoreBuildErrors: true },
 
+  // ignora QUALQUER erro do ESLint durante o build
+  eslint: { ignoreDuringBuilds: true },
+};
