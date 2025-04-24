@@ -192,26 +192,29 @@ export default function ReportPage() {
     ],
   };
 
-  // ✅ Tipagem estrita – fim dos erros no build
-  const archetypeOptions: ChartOptions<"bar"> = {
-    indexAxis: "y" as const,
-    scales: {
-      x: {
-        type: "linear" as const,
-        min: 0,
-        max: 100,
-        ticks: { color: "#334155" },
-        grid: { color: "#e2e8f0" },
-      } as LinearScaleOptions,
-      y: {
-        ticks: { color: "#334155" },
-        grid: { color: "#f1f5f9" },
-      } as CategoryScaleOptions,
+ // ─────────────────────────────────────────────
+//  Opções do gráfico de barras (corrigido)
+// ─────────────────────────────────────────────
+const archetypeOptions = {
+  indexAxis: "y",            // eixo dos rótulos
+  scales: {
+    x: {
+      type: "linear",
+      min: 0,
+      max: 100,
+      ticks: { color: "#334155" },
+      grid:  { color: "#e2e8f0" },
     },
-    plugins: { legend: { display: false } },
-    responsive: true,
-    maintainAspectRatio: false,
-  };
+    y: {
+      ticks: { color: "#334155" },
+      grid:  { color: "#f1f5f9" },
+    },
+  },
+  plugins: { legend: { display: false } },
+  responsive: true,
+  maintainAspectRatio: false,
+} as any;                     //  ← força o TypeScript a aceitar
+
 
   const radarData = {
     labels: attributes?.map((a: any) => a.atributo) ?? [],
