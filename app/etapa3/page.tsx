@@ -242,13 +242,11 @@ export default function ReportPage() {
 
 import type { ChartOptions } from "chart.js";
 
-import type { ChartOptions } from "chart.js";
-
 const archetypeOptions: ChartOptions<"bar"> = {
-  indexAxis: "y" as const,
+  indexAxis: "y",
   scales: {
     x: {
-      type: "linear" as const,
+      type: "linear",
       min: 0,
       max: 100,
       ticks: { color: "#334155" },
@@ -265,6 +263,7 @@ const archetypeOptions: ChartOptions<"bar"> = {
   responsive: true,
   maintainAspectRatio: false,
 };
+
 
 
   const radarData = {
