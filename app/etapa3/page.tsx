@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import RelatorioPDFExport from "@/components/ui/RelatorioPDFExport";
 import AdditionalReport from "@/components/AdditionalReport";
-import type { ChartOptions } from "chart.js";
+import { ChartOptions } from 'chart.js';
 
 // Registrar os componentes do Chart.js
 ChartJS.register(
@@ -241,8 +241,9 @@ export default function ReportPage() {
     ],
   };
 
-const archetypeOptions = {
-  indexAxis: 'y',
+// Defina o tipo específico para as opções do gráfico de barras
+const archetypeOptions: ChartOptions<'bar'> = {
+  indexAxis: 'y' as 'x' | 'y',  // Especifique o tipo literal explicitamente
   scales: {
     x: {
       beginAtZero: true,
@@ -261,8 +262,7 @@ const archetypeOptions = {
   },
   responsive: true,
   maintainAspectRatio: false,
-} as any;  // Use 'as any' to bypass TypeScript checking for this object
-
+};
   const radarData = {
     labels: attributes?.map((a: any) => a.atributo) ?? [],
     datasets: [
