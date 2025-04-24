@@ -242,7 +242,7 @@ export default function ReportPage() {
   };
 
 const archetypeOptions: ChartOptions<"bar"> = {
-  indexAxis: "y",
+  indexAxis: "y" as const,
   scales: {
     x: {
       type: "linear",
@@ -262,9 +262,6 @@ const archetypeOptions: ChartOptions<"bar"> = {
   responsive: true,
   maintainAspectRatio: false,
 };
-
-
-
   const radarData = {
     labels: attributes?.map((a: any) => a.atributo) ?? [],
     datasets: [
