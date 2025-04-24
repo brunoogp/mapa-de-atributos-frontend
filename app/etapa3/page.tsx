@@ -376,7 +376,7 @@ const archetypeOptions = {
               Compatibilidade entre Arquétipos
             </h2>
             <div className="h-[280px]">
-              <Bar data={archetypeData} options={archetypeOptions} />
+             <Bar data={archetypeData as any} options={archetypeOptions as any} />
             </div>
           </CardContent>
         </Card>
