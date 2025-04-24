@@ -240,11 +240,11 @@ export default function ReportPage() {
     ],
   };
 
-const archetypeOptions = {
-  indexAxis: 'y' as const,  // Usando 'as const' para inferir literalmente 'y'
+const archetypeOptions: ChartOptions<"bar"> = {
+  indexAxis: "y", // sem `as const` aqui, pois o tipo já restringe corretamente
   scales: {
     x: {
-      beginAtZero: true,
+      type: "linear",
       min: 0,
       max: 100,
       ticks: { color: "#334155" },
@@ -253,15 +253,16 @@ const archetypeOptions = {
     y: {
       ticks: { color: "#334155" },
       grid: { color: "#f1f5f9" }
-    },
+    }
   },
   plugins: {
-    legend: { display: false }
+    legend: {
+      display: false
+    }
   },
   responsive: true,
-  maintainAspectRatio: false,
-} satisfies ChartOptions<'bar'>;  // 'satisfies' permite verificação de tipo sem restringir o tipo inferido
-
+  maintainAspectRatio: false
+};
   const radarData = {
     labels: attributes?.map((a: any) => a.atributo) ?? [],
     datasets: [
