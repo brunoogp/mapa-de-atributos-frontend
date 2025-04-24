@@ -5,4 +5,4 @@ module.exports = {
     ignoreBuildErrors: true,
   },
 };
-chore: ignore TS errors in build
+
