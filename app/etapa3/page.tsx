@@ -241,9 +241,8 @@ export default function ReportPage() {
     ],
   };
 
-// Defina o tipo específico para as opções do gráfico de barras
-const archetypeOptions: ChartOptions<'bar'> = {
-  indexAxis: 'y' as 'x' | 'y',  // Especifique o tipo literal explicitamente
+const archetypeOptions = {
+  indexAxis: 'y' as const,  // Usando 'as const' para inferir literalmente 'y'
   scales: {
     x: {
       beginAtZero: true,
@@ -262,7 +261,8 @@ const archetypeOptions: ChartOptions<'bar'> = {
   },
   responsive: true,
   maintainAspectRatio: false,
-};
+} satisfies ChartOptions<'bar'>;  // 'satisfies' permite verificação de tipo sem restringir o tipo inferido
+
   const radarData = {
     labels: attributes?.map((a: any) => a.atributo) ?? [],
     datasets: [
