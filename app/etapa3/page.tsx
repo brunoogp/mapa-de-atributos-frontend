@@ -11,9 +11,11 @@ import {
   BarElement,
   Filler,
   Tooltip,
-  Legend,
-  ChartOptions,
-} from "chart.js";
+  Legend
+} from "chart.js"; // ✅ Aqui termina corretamente
+
+import type { ChartOptions } from "chart.js"; // ✅ Aqui começa o import separado
+
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -240,28 +242,26 @@ export default function ReportPage() {
     ],
   };
 
-const archetypeOptions: ChartOptions<"bar"> = {
-  indexAxis: "y", // sem `as const` aqui, pois o tipo já restringe corretamente
+const archetypeOptions: ChartOptions<'bar'> = {
+  indexAxis: 'y',
   scales: {
     x: {
-      type: "linear",
+      type: 'linear',
       min: 0,
       max: 100,
-      ticks: { color: "#334155" },
-      grid: { color: "#e2e8f0" }
+      ticks: { color: '#334155' },
+      grid: { color: '#e2e8f0' },
     },
     y: {
-      ticks: { color: "#334155" },
-      grid: { color: "#f1f5f9" }
-    }
+      ticks: { color: '#334155' },
+      grid: { color: '#f1f5f9' },
+    },
   },
   plugins: {
-    legend: {
-      display: false
-    }
+    legend: { display: false },
   },
   responsive: true,
-  maintainAspectRatio: false
+  maintainAspectRatio: false,
 };
   const radarData = {
     labels: attributes?.map((a: any) => a.atributo) ?? [],
