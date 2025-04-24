@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/dialog";
 import RelatorioPDFExport from "@/components/ui/RelatorioPDFExport";
 import AdditionalReport from "@/components/AdditionalReport";
-import { ChartOptions } from 'chart.js';
 
 // Registrar os componentes do Chart.js
 ChartJS.register(
