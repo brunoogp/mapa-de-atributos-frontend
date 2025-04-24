@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
-  // ‼️ esta linha desliga a trava nos erros de tipos no build
+  // ignora erros de TypeScript no build de produção
   typescript: {
     ignoreBuildErrors: true,
   },
 };
+chore: ignore TS errors in build
