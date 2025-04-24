@@ -242,7 +242,7 @@ export default function ReportPage() {
   };
 
 const archetypeOptions: ChartOptions<"bar"> = {
-  indexAxis: "y" as const,
+  indexAxis: "y" as const, // ← ESSENCIAL para evitar o erro de tipagem
   scales: {
     x: {
       type: "linear",
