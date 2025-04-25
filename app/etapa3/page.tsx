@@ -1,4 +1,4 @@
-@ts-nocheck
+// @ts-nocheck
 "use client";
 
 import { Radar, Bar } from "react-chartjs-2";
