@@ -84,7 +84,7 @@ export default function FormularioEtapa2() {
         receberResumo: form.receberResumo,
       };
 
-      const res = await fetch("https://diagnostico-marca.onrender.com/diagnostico/briefing-direto", {
+      const res = await fetch("https://backend-mapa-atributos.onrender.com/diagnostico/briefing-direto", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(payload),
