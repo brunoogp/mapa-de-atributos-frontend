@@ -92,6 +92,7 @@ export default function ReportPage() {
       ...briefingData,
       atributos_selecionados: atributosSelecionados,
     };
+console.log("Payload enviado:", payload);
 
     fetch("https://backend-mapa-atributos.onrender.com/diagnostico/briefing-direto", {
       method: "POST",
