@@ -347,18 +347,6 @@ export default function ReportPage() {
           </Dialog>
         </div>
 
-        {/* Gráfico de Arquétipos */}
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-4">
-              Compatibilidade entre Arquétipos
-            </h2>
-            <div className="h-[280px]">
-             <Bar data={archetypeData as any} options={archetypeOptions as any} />
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Radar + Insights */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
