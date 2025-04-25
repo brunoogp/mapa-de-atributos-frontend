@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { Radar, Bar } from "react-chartjs-2";
@@ -13,11 +12,7 @@ import {
   Filler,
   Tooltip,
   Legend,
-  ChartOptions,
-  LinearScaleOptions,
-  CategoryScaleOptions,
 } from "chart.js";
-
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,9 +33,7 @@ import {
 import RelatorioPDFExport from "@/components/ui/RelatorioPDFExport";
 import AdditionalReport from "@/components/AdditionalReport";
 
-// ────────────────────────────────────────────────────────────────────
-// Registro dos componentes Chart.js
-// ────────────────────────────────────────────────────────────────────
+// Registrar os componentes do Chart.js
 ChartJS.register(
   RadialLinearScale,
   LinearScale,
@@ -61,11 +54,12 @@ export default function ReportPage() {
   const [insights, setInsights] = useState<any[]>([]);
   const [archetypesChart, setArchetypesChart] = useState<any[]>([]);
   const [isExporting, setIsExporting] = useState(false);
+  // Novo estado para controlar o modal da proposta de valor
   const [showAdditionalReport, setShowAdditionalReport] = useState(false);
 
   const pdfRef = useRef<HTMLDivElement>(null);
 
-  // ── Override de estilos problemáticos (exportação PDF)
+  // CSS para sobrescrever estilos problemáticos (para exportação PDF, se for necessário)
   useEffect(() => {
     const styleElement = document.createElement("style");
     styleElement.textContent = `
@@ -74,29 +68,35 @@ export default function ReportPage() {
         background-color: #ffffff !important;
         border-color: #dddddd !important;
       }
-      .export-pdf-mode .text-muted-foreground { color: #666666 !important; }
-      .export-pdf-mode .bg-muted            { background-color: #f5f5f5 !important; }
+      .export-pdf-mode .text-muted-foreground {
+        color: #666666 !important;
+      }
+      .export-pdf-mode .bg-muted {
+        background-color: #f5f5f5 !important;
+      }
     `;
     document.head.appendChild(styleElement);
-    return () => document.head.removeChild(styleElement);
+    return () => {
+      document.head.removeChild(styleElement);
+    };
   }, []);
 
-  // ── Busca de dados do diagnóstico (localStorage → API)
+  // Busca os dados do diagnóstico e atualiza os estados
   useEffect(() => {
     const rawBriefing = localStorage.getItem("briefing");
     const rawAtributos = localStorage.getItem("atributosSelecionados");
     if (!rawBriefing || !rawAtributos) return;
-
     const briefingData = JSON.parse(rawBriefing);
     const atributosSelecionados = JSON.parse(rawAtributos);
+    const payload = {
+      ...briefingData,
+      atributos_selecionados: atributosSelecionados,
+    };
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/diagnostico/briefing-direto`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...briefingData,
-        atributos_selecionados: atributosSelecionados,
-      }),
+      body: JSON.stringify(payload),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -108,42 +108,86 @@ export default function ReportPage() {
         setInsights(data.insights);
         localStorage.setItem("diagnostico", JSON.stringify(data));
       })
-      .catch((err) => console.error("Erro ao gerar diagnóstico:", err));
+      .catch((err) => {
+        console.error("Erro ao gerar diagnóstico:", err);
+      });
   }, []);
 
-  // ── Exportação PDF
+  // Função para exportar o PDF do relatório principal (mantida se necessário)
   const exportarPDF = async () => {
     if (!pdfRef.current || isExporting) return;
     setIsExporting(true);
     try {
       document.documentElement.classList.add("export-pdf-mode");
-      const [{ default: jsPDF }, { default: html2Canvas }] = await Promise.all([
+      const [jsPDFModule, html2CanvasModule] = await Promise.all([
         import("jspdf"),
         import("html2canvas"),
       ]);
+      const jsPDF = jsPDFModule.default;
+      const html2Canvas = html2CanvasModule.default;
 
-      const element = pdfRef.current;
-      const clone = element.cloneNode(true) as HTMLElement;
+      // Clona o elemento a ser capturado
+      const elementToCapture = pdfRef.current;
+      const clone = elementToCapture.cloneNode(true) as HTMLElement;
 
-      // Limpa cores em oklch
+      // Insere um style de sobrescrita no clone para forçar cores seguras
+      const styleOverride = document.createElement("style");
+      styleOverride.innerHTML = `* { 
+        background: #fff !important; 
+        color: #000 !important; 
+        border-color: #ddd !important; 
+      }`;
+      clone.insertBefore(styleOverride, clone.firstChild);
+
+      // Função para limpar estilos inline com "oklch"
       const cleanNode = (node: HTMLElement) => {
-        ["backgroundColor", "color", "borderColor"].forEach((prop) => {
-          // @ts-ignore
-          if (node.style[prop]?.includes("oklch")) node.style[prop] = "";
+        if (node.style && node.style.cssText) {
+          node.style.cssText = node.style.cssText.replace(/oklch\([^)]+\)/g, "#ffffff");
+        }
+        if (node.style.backgroundColor && node.style.backgroundColor.includes("oklch")) {
+          node.style.backgroundColor = "#ffffff";
+        }
+        if (node.style.color && node.style.color.includes("oklch")) {
+          node.style.color = "#000000";
+        }
+        if (node.style.borderColor && node.style.borderColor.includes("oklch")) {
+          node.style.borderColor = "#dddddd";
+        }
+        Array.from(node.children).forEach((child) => {
+          cleanNode(child as HTMLElement);
         });
-        Array.from(node.children).forEach((n) => cleanNode(n as HTMLElement));
       };
       cleanNode(clone);
 
+      // Remove classes do clone para evitar estilos globais
+      const removeClasses = (node: HTMLElement) => {
+        node.removeAttribute("class");
+        Array.from(node.children).forEach((child) => {
+          removeClasses(child as HTMLElement);
+        });
+      };
+      removeClasses(clone);
+
+      // Posiciona o clone fora da tela para a captura
       clone.style.position = "absolute";
       clone.style.top = "-9999px";
+      clone.style.left = "0";
       document.body.appendChild(clone);
 
-      await new Promise((r) => setTimeout(r, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const canvas = await html2Canvas(clone, {
         scale: 2,
+        useCORS: true,
+        logging: false,
         backgroundColor: "#ffffff",
+        removeContainer: false,
+        ignoreElements: (element) => {
+          const style = window.getComputedStyle(element);
+          const bgColor = style.backgroundColor;
+          const color = style.color;
+          return bgColor?.includes("oklch") || color?.includes("oklch");
+        },
       });
       document.body.removeChild(clone);
 
@@ -153,9 +197,8 @@ export default function ReportPage() {
       const pageHeight = 295;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      let position = 0;
       let heightLeft = imgHeight;
-
+      let position = 0;
       pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
@@ -166,16 +209,19 @@ export default function ReportPage() {
         heightLeft -= pageHeight;
       }
       pdf.save("relatorio-marca.pdf");
-    } catch (e) {
-      console.error("Erro ao exportar PDF:", e);
-      alert("Houve um erro ao exportar o PDF. Tente novamente.");
+    } catch (error) {
+      console.error("Erro ao exportar PDF:", error);
+      alert("Houve um erro ao exportar o PDF. Por favor, tente novamente.");
     } finally {
       document.documentElement.classList.remove("export-pdf-mode");
       setIsExporting(false);
     }
   };
 
-  // ── Dados para gráficos
+  // Caso queira manter a função de gerar PDF para a Proposta de Valor, você pode deixar handleGenerateAdditionalReport;
+  // Para exibir na tela (modal), usaremos o estado showAdditionalReport.
+
+  // Definição de dados para o gráfico dos arquétipos
   const archetypeData = {
     labels: archetypesChart?.map((a: any) => a.nome) ?? [],
     datasets: [
@@ -193,7 +239,27 @@ export default function ReportPage() {
     ],
   };
 
-
+  const archetypeOptions = {
+    indexAxis: "y" as const,
+    scales: {
+      x: {
+        type: "linear",
+        min: 0,
+        max: 100,
+        ticks: { color: "#334155" },
+        grid: { color: "#e2e8f0" },
+      },
+      y: {
+        ticks: { color: "#334155" },
+        grid: { color: "#f1f5f9" },
+      },
+    },
+    plugins: {
+      legend: { display: false },
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+  };
 
   const radarData = {
     labels: attributes?.map((a: any) => a.atributo) ?? [],
@@ -219,12 +285,13 @@ export default function ReportPage() {
         grid: { color: "#cbd5e1" },
       },
     },
-    plugins: { legend: { labels: { color: "#334155" } } },
+    plugins: {
+      legend: { labels: { color: "#334155" } },
+    },
     responsive: true,
     maintainAspectRatio: false,
   };
 
-  // ── Mensagens de loading
   const frasesLoading = [
     "Preparando sua análise estratégica...",
     "Interpretando arquétipos e atributos...",
@@ -234,11 +301,10 @@ export default function ReportPage() {
   ];
   const [index, setIndex] = useState(0);
   useEffect(() => {
-    const id = setInterval(
-      () => setIndex((i) => (i + 1) % frasesLoading.length),
-      2500
-    );
-    return () => clearInterval(id);
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % frasesLoading.length);
+    }, 2500);
+    return () => clearInterval(interval);
   }, []);
 
   if (!brandSummary) {
@@ -259,14 +325,15 @@ export default function ReportPage() {
     );
   }
 
-  // ────────────────────────────────────────────────────────────────────
-  // JSX de retorno (sem alterações estruturais)
-  // ────────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-background text-foreground px-6 py-10">
-      <header className="flex items-center justify-center mb-8">
-        <h1 className="text-4xl font-bold">A.R.Q</h1>
-      </header>
+      {/* Cabeçalho com o logo A.R.Q */}
+<header className="flex items-center justify-center mb-8">
+  <h1 className="text-4xl font-bold">A.R.Q</h1>
+  {/* Se tiver uma imagem, use:
+  <Image src="/arq-logo.png" alt="Logo A.R.Q" width={150} height={50} />
+  */}
+</header>
 
       <div className="max-w-7xl mx-auto space-y-6">
         <header className="flex items-center justify-between">
@@ -281,7 +348,7 @@ export default function ReportPage() {
           </Button>
         </header>
 
-        {/* Elemento invisível para captura PDF */}
+        {/* Área oculta para exportação (PDF) */}
         <div
           ref={pdfRef}
           style={{
@@ -304,7 +371,7 @@ export default function ReportPage() {
           />
         </div>
 
-        {/* Resumo + Arquétipo */}
+        {/* Resumo e Arquétipo */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="col-span-2">
             <CardContent className="p-6 space-y-4">
@@ -314,8 +381,6 @@ export default function ReportPage() {
               </p>
             </CardContent>
           </Card>
-
-          {/* Card do Arquétipo com modal detalhado */}
           <Dialog>
             <DialogTrigger asChild>
               <Card className="cursor-pointer hover:bg-muted transition">
@@ -346,6 +411,18 @@ export default function ReportPage() {
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Gráfico de Arquétipos */}
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold mb-4">
+              Compatibilidade entre Arquétipos
+            </h2>
+            <div className="h-[280px]">
+              <Bar data={archetypeData} options={archetypeOptions} />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Radar + Insights */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
