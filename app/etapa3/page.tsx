@@ -93,7 +93,7 @@ export default function ReportPage() {
       atributos_selecionados: atributosSelecionados,
     };
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/diagnostico/briefing-direto`, {
+    fetch("https://backend-mapa-atributos.onrender.com/diagnostico/briefing-direto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
