@@ -84,11 +84,12 @@ export default function FormularioEtapa2() {
         receberResumo: form.receberResumo,
       };
 
-      const res = await fetch("http://localhost:8000/diagnostico/briefing-direto", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch("https://diagnostico-marca.onrender.com/diagnostico/briefing-direto", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload),
+});
+
 
       const data = await res.json();
 
