@@ -1,4 +1,3 @@
-// app/etapa2/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -55,12 +54,13 @@ export default function FormularioEtapa2() {
   const handleSubmit = async () => {
     setIsLoading(true);
 
-    // Roda as frases a cada 2.5s
     const interval = setInterval(() => {
       setFraseIndex((prev) => (prev + 1) % frases.length);
     }, 2500);
 
     try {
+      const atributosSalvos = JSON.parse(localStorage.getItem("atributosSelecionados") || "[]");
+
       const payload = {
         nome: form.nome,
         email: form.email,
@@ -80,16 +80,15 @@ export default function FormularioEtapa2() {
         concorrentes: form.concorrentes,
         diferencial: form.diferencial,
         objetivo: form.objetivo,
-        atributos_selecionados: ["Afetiva", "Natural", "Acolhedora"],
+        atributos_selecionados: atributosSalvos,
         receberResumo: form.receberResumo,
       };
 
       const res = await fetch("https://backend-mapa-atributos.onrender.com/diagnostico/briefing-direto", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload),
-});
-
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       const data = await res.json();
 
@@ -106,9 +105,7 @@ export default function FormularioEtapa2() {
 
   return (
     <div className="min-h-screen bg-background text-foreground px-6 py-10">
-      {isLoading && (
-        <LoadingOverlay />
-      )}
+      {isLoading && <LoadingOverlay />}
 
       <div className="max-w-2xl mx-auto space-y-10">
         <div className="space-y-2">
