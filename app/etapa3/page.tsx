@@ -83,36 +83,33 @@ export default function ReportPage() {
 
   // Busca os dados do diagnóstico e atualiza os estados
   useEffect(() => {
-    const rawBriefing = localStorage.getItem("briefing");
-    const rawAtributos = localStorage.getItem("atributosSelecionados");
-    if (!rawBriefing || !rawAtributos) return;
-    const briefingData = JSON.parse(rawBriefing);
-    const atributosSelecionados = JSON.parse(rawAtributos);
-    const payload = {
-      ...briefingData,
-      atributos_selecionados: atributosSelecionados,
-    };
-console.log("Payload enviado:", payload);
+  const rawBriefing = localStorage.getItem("briefing");
+  if (!rawBriefing) return;
 
-    fetch("https://backend-mapa-atributos.onrender.com/diagnostico/briefing-direto", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+  const payload = JSON.parse(rawBriefing);
+
+  console.log("Payload enviado:", payload);
+
+  fetch("https://backend-mapa-atributos.onrender.com/diagnostico/briefing-direto", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      setBrandSummary(data.resumo);
+      setAttributes(data.atributos);
+      setArchetype(data.arquetipo);
+      setArchetypesChart(data.grafico_arquetipos);
+      setGuidelines(data.diretrizes);
+      setInsights(data.insights);
+      localStorage.setItem("diagnostico", JSON.stringify(data));
     })
-      .then((res) => res.json())
-      .then((data) => {
-        setBrandSummary(data.resumo);
-        setAttributes(data.atributos);
-        setArchetype(data.arquetipo);
-        setArchetypesChart(data.grafico_arquetipos);
-        setGuidelines(data.diretrizes);
-        setInsights(data.insights);
-        localStorage.setItem("diagnostico", JSON.stringify(data));
-      })
-      .catch((err) => {
-        console.error("Erro ao gerar diagnóstico:", err);
-      });
-  }, []);
+    .catch((err) => {
+      console.error("Erro ao gerar diagnóstico:", err);
+    });
+}, []);
+
 
   // Função para exportar o PDF do relatório principal (mantida se necessário)
   const exportarPDF = async () => {
