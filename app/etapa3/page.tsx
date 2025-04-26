@@ -84,16 +84,23 @@ export default function ReportPage() {
   // Busca os dados do diagnóstico e atualiza os estados
   useEffect(() => {
   const rawBriefing = localStorage.getItem("briefing");
-  if (!rawBriefing) return;
+  const rawAtributos = localStorage.getItem("atributosSelecionados");
+  if (!rawBriefing || !rawAtributos) return;
 
-  const payload = JSON.parse(rawBriefing);
+  const briefingData = JSON.parse(rawBriefing);
+  const atributosSelecionados = JSON.parse(rawAtributos);
+
+  const payload = {
+    ...briefingData,
+    atributos_selecionados: atributosSelecionados, // ✅ aqui é onde deve ficar
+  };
 
   console.log("Payload enviado:", payload);
 
   fetch("https://backend-mapa-atributos.onrender.com/diagnostico/briefing-direto", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payload), // ✅ aqui está tudo que o backend precisa
   })
     .then((res) => res.json())
     .then((data) => {
@@ -109,6 +116,7 @@ export default function ReportPage() {
       console.error("Erro ao gerar diagnóstico:", err);
     });
 }, []);
+
 
 
   // Função para exportar o PDF do relatório principal (mantida se necessário)
