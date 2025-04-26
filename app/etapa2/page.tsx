@@ -110,7 +110,7 @@ export default function FormularioEtapa2() {
           <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
             <div
               className="bg-primary h-full transition-all duration-500"
-              style={{ width: ${(step / totalSteps) * 100}% }}
+              style={{ width: `${(step / totalSteps) * 100}%` }}
             ></div>
           </div>
         </div>
