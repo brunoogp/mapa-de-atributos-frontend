@@ -52,56 +52,50 @@ export default function FormularioEtapa2() {
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
   const handleSubmit = async () => {
-    setIsLoading(true);
+  setIsLoading(true);
 
-    const interval = setInterval(() => {
-      setFraseIndex((prev) => (prev + 1) % frases.length);
-    }, 2500);
+  const interval = setInterval(() => {
+    setFraseIndex((prev) => (prev + 1) % frases.length);
+  }, 2500);
 
-    try {
-      const atributosSalvos = JSON.parse(localStorage.getItem("atributosSelecionados") || "[]");
+  try {
+    const atributosSalvos = JSON.parse(localStorage.getItem("atributosSelecionados") || "[]");
 
-      const payload = {
-        nome: form.nome,
-        email: form.email,
-        nome_marca: form.empresa || "Marca sem nome",
-        site: form.site,
-        localizacao: form.localizacao,
-        segmento: form.segmento,
-        tempoExistencia: form.tempoExistencia,
-        temIdentidade: form.temIdentidade,
-        canais: form.canais,
-        descricao_marca: form.descricaoMarca || "Sem descrição fornecida.",
-        mensagemMarca: form.mensagemMarca,
-        valores: form.valores,
-        percepcao: form.percepcao,
-        publicoIdeal: form.publicoIdeal,
-        transformacao: form.transformacao,
-        concorrentes: form.concorrentes,
-        diferencial: form.diferencial,
-        objetivo: form.objetivo,
-        atributos_selecionados: atributosSalvos,
-        receberResumo: form.receberResumo,
-      };
+    const payload = {
+      nome: form.nome,
+      email: form.email,
+      nome_marca: form.empresa || "Marca sem nome",
+      site: form.site,
+      localizacao: form.localizacao,
+      segmento: form.segmento,
+      tempoExistencia: form.tempoExistencia,
+      temIdentidade: form.temIdentidade === true,
+      canais: form.canais,
+      descricao_marca: form.descricaoMarca || "Sem descrição fornecida.",
+      mensagemMarca: form.mensagemMarca,
+      valores: form.valores,
+      percepcao: form.percepcao,
+      publicoIdeal: form.publicoIdeal,
+      transformacao: form.transformacao,
+      concorrentes: form.concorrentes,
+      diferencial: form.diferencial,
+      objetivo: form.objetivo,
+      receberResumo: form.receberResumo === true,
+    };
 
-      const res = await fetch("https://backend-mapa-atributos.onrender.com/diagnostico/briefing-direto", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+    // 💾 Salva briefing completo no localStorage
+    localStorage.setItem("briefing", JSON.stringify(payload));
 
-      const data = await res.json();
+    // ✅ Redireciona para a Etapa 3 — onde o fetch será feito
+    router.push("/etapa3");
 
-      if (data) {
-        localStorage.setItem("briefing", JSON.stringify(payload));
-        router.push("/etapa3");
-      }
-    } catch (error) {
-      console.error("Erro ao enviar formulário:", error);
-    } finally {
-      clearInterval(interval);
-    }
-  };
+  } catch (error) {
+    console.error("Erro ao enviar formulário:", error);
+  } finally {
+    clearInterval(interval);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-background text-foreground px-6 py-10">
@@ -116,7 +110,7 @@ export default function FormularioEtapa2() {
           <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
             <div
               className="bg-primary h-full transition-all duration-500"
-              style={{ width: `${(step / totalSteps) * 100}%` }}
+              style={{ width: ${(step / totalSteps) * 100}% }}
             ></div>
           </div>
         </div>
