@@ -97,30 +97,27 @@ export default function ReportPage() {
 
   console.log("Payload enviado:", payload);
 
-  fetch("https://mapa-de-atributos-production.up.railway.app/diagnostico/briefing-direto", {
+  fetch(`${process.env.NEXT_PUBLIC_API_URL}/diagnostico/briefing-direto`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json"
   },
   body: JSON.stringify(payload)
 })
-
-    .then((res) => res.json())
-    .then((data) => {
-      setBrandSummary(data.resumo);
-      setAttributes(data.atributos);
-      setArchetype(data.arquetipo);
-      setArchetypesChart(data.grafico_arquetipos);
-      setGuidelines(data.diretrizes);
-      setInsights(data.insights);
-      localStorage.setItem("diagnostico", JSON.stringify(data));
-    })
-    .catch((err) => {
-      console.error("Erro ao gerar diagnóstico:", err);
-    });
+  .then((res) => res.json())
+  .then((data) => {
+    setBrandSummary(data.resumo);
+    setAttributes(data.atributos);
+    setArchetype(data.arquetipo);
+    setArchetypesChart(data.grafico_arquetipos);
+    setGuidelines(data.diretrizes);
+    setInsights(data.insights);
+    localStorage.setItem("diagnostico", JSON.stringify(data));
+  })
+  .catch((err) => {
+    console.error("Erro ao gerar diagnóstico:", err);
+  });
 }, []);
-
-
 
   // Função para exportar o PDF do relatório principal (mantida se necessário)
   const exportarPDF = async () => {
