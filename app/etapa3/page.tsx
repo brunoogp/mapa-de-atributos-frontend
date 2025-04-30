@@ -97,11 +97,14 @@ export default function ReportPage() {
 
   console.log("Payload enviado:", payload);
 
-  fetch("https://backend-mapa-atributos.onrender.com/diagnostico/briefing-direto", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload), // ✅ aqui está tudo que o backend precisa
-  })
+  fetch("https://mapa-de-atributos-production.up.railway.app/diagnostico/briefing-direto", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(payload)
+})
+
     .then((res) => res.json())
     .then((data) => {
       setBrandSummary(data.resumo);
